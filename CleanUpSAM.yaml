@@ -1,0 +1,57 @@
+﻿AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Elastic Beanstalk Version Cleanup Lambda
+Resources:
+  CleanUpBeanstalkRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+          - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Sid: "AllowLambdaServiceToAssumeRole"
+            Effect: "Allow"
+            Action: 
+              - "sts:AssumeRole"
+            Principal:
+              Service: 
+                - "lambda.amazonaws.com"
+      Policies:
+        -
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                - "elasticbeanstalk:DescribeApplications"
+                - "elasticbeanstalk:DescribeApplicationVersions"
+                - "elasticbeanstalk:DescribeEnvironments"
+                - "elasticbeanstalk:DeleteApplicationVersion"
+                - "s3:GetObject"
+                - "s3:ListBucket"
+                - "s3:DeleteObject"
+                Resource: "*"
+  CleanupBeanstalkAppVersions:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: ebcleanup.lambda_handler
+      Runtime: python2.7
+      CodeUri: .
+      Description: ''
+      MemorySize: 128
+      Timeout: 60
+      Role: !GetAtt CleanUpBeanstalkRole.Arn
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      Environment:
+        Variables:
+          VERSION_LIMIT: '10'
+          REGION: us-east-1

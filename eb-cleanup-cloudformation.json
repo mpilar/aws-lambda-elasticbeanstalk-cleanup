@@ -49,8 +49,8 @@
                     "ZipFile": {
                         "Fn::Join": ["", [
                             "import boto3\n",
-                            "versionLimit = ", {"Ref": "VersionLimit"}, "\n",
-                            "region = \"", {"Ref": "AWS::Region"}, "\"\n",
+                            "versionLimit = os.environ.get('VERSION_LIMIT', 25)\n",
+                            "region = os.environ.get('REGION', 'us-east-1')\n",
                             "def lambda_handler(event, context):\n",
                             "   print '--- Cleaning up Beanstalk App Versions in region: %s - limit: %s' % (region, versionLimit)\n",
                             "   ebClient = boto3.client('elasticbeanstalk', region_name=region)\n",
@@ -85,7 +85,13 @@
                 "MemorySize": {"Ref": "MemorySize"},
                 "Role": { "Fn::GetAtt": ["IamRole", "Arn"]},
                 "Runtime": "python2.7",
-                "Timeout": {"Ref": "Timeout"}
+                "Timeout": {"Ref": "Timeout"},
+                "Environment": {
+                    "Variables": {
+                        "VERSION_LIMIT": {"Ref": "VersionLimit"},
+                        "REGION": {"Ref": "AWS::Region"}
+                    }
+                }
             }
         },
         "IamRole": {

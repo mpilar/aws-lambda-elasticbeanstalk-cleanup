@@ -5,12 +5,25 @@ A simple lambda function that cleans up your Elastic Beanstalk applications vers
 
 For each Elastic Beanstalk application in your region, this script will delete all the application versions that are above the limit.
 
-## Using aws-lambda-elasticbeanstalk-cleanup
+# Using aws-lambda-elasticbeanstalk-cleanup
 
-Create a new Python Lambda Function in your aws console, and paste the code, change the region and limit values at the top of the code according to your needs:
+## Using AWS Serverless Application Model
 
-    versionsLimit = 25 # (Per Elastic Beanstalk application)
-    region = "us-west-2"
+You can install the Lambda function using the SAM definition included by running the following commands:
+
+    aws cloudformation package --template-file CleanUpSAM.yaml --s3-bucket <package bucket> --output-template CleanUpSAM-transform.yaml --s3-prefix <prefix>
+    aws cloudformation deploy --template-file CleanUpSAM-transform.yaml --stack-name <stack name> --capabilities CAPABILITY_IAM
+
+This will create a Lambda function, IAM role and schedule. See below for the relevant info on environment variables for the lambda you can modify.
+
+Note the argument `--capabilities CAPABILITY_IAM` is required to create the IAM role for the SAM package.
+
+For more information on AWS SAM see [here](http://docs.aws.amazon.com/lambda/latest/dg/deploying-lambda-apps.html).
+
+## Manual installation
+
+### Create the Lambda function
+Create a new Python Lambda Function in your aws console, and paste the code.
 
 Set the Memory and Timeout values for your function, for example:
 
@@ -19,7 +32,7 @@ Set the Memory and Timeout values for your function, for example:
 
 And that's it, you can then configure how your function will be triggered, using a Scheduled Event or so :).
 
-## IAM Role
+### Create the IAM Role
 
 In order to let your lambda function clean up your application versions, you need a proper execution role, here is the one i use:
 
@@ -50,6 +63,13 @@ In order to let your lambda function clean up your application versions, you nee
             }
         ]
     }
+
+## Environment Variables
+
+The lambda function uses the following environment variables to control the region and how many versions per application to retain.
+
+    VERSION_LIMIT = 25 # (Per Elastic Beanstalk application)
+    REGION = us-west-2
 
 ## Considerations
 

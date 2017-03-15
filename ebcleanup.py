@@ -1,7 +1,8 @@
 import boto3
+import os
 
-versionsLimit = 25
-region = "us-east-1"
+versionsLimit = int(os.environ.get('VERSION_LIMIT', 25))
+region = os.environ.get('REGION', 'us-east-1')
 
 
 def lambda_handler(event, context):
